@@ -1,0 +1,21 @@
+{
+  "Tasks": [
+    {
+      "Url": "http://example.com",
+      "Selector": "div.data",
+      "SelectorType": "CSS"
+    },
+    {
+      "Url": "http://example2.com",
+      "Selector": "//span[contains(text(), 'Data:')]",
+      "SelectorType": "XPath"
+    }
+  ],
+  "MailgunSettings": {
+    "ApiKey": "111111111111",
+    "Domain": "sandbox11111111",
+    "From": "Mailgun Sandbox <postmaster@sandbox11111111111>",
+    "To": "Alex P <alex.pantec@gmail.com>"
+  },
+  "Delay": 300
+}
