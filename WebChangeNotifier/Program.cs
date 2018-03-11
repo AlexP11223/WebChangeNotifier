@@ -6,8 +6,7 @@ using System.Threading;
 using Newtonsoft.Json;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Remote;
-using RestSharp;
-using RestSharp.Authenticators;
+using static WebChangeNotifier.Logger;
 
 namespace WebChangeNotifier
 {
@@ -41,37 +40,11 @@ namespace WebChangeNotifier
 
         private static WebsitesStateContainer _stateContainer;
 
-        static void Log(string text)
-        {
-            Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] {text}");
-        }
+        private static MailgunSender _mailer;
 
         static Config ParseConfig(string filePath)
         {
             return JsonConvert.DeserializeObject<Config>(File.ReadAllText(filePath));
-        }
-
-        static void SendEmail(string text, MailgunSettings emailSettings)
-        {
-            Log("Sending email: " + text);
-
-            var client = new RestClient
-            {
-                BaseUrl = new Uri("https://api.mailgun.net/v3"),
-                Authenticator = new HttpBasicAuthenticator("api", emailSettings.ApiKey)
-            };
-            var request = new RestRequest();
-            request.AddParameter("domain", emailSettings.Domain, ParameterType.UrlSegment);
-            request.Resource = "{domain}/messages";
-            request.AddParameter("from", emailSettings.From);
-            request.AddParameter("to", emailSettings.To);
-            request.AddParameter("subject", "WebChangeNotifier");
-            request.AddParameter("text", text);
-            request.Method = Method.POST;
-
-            var response = client.Execute(request);
-
-            Log(response.Content);
         }
 
         static RemoteWebDriver _webDriver;
@@ -109,7 +82,7 @@ namespace WebChangeNotifier
             } 
         }
 
-        static void Process(MonitoringTask task, Config config)
+        static void Process(MonitoringTask task)
         {
             Log($"Running {task.UrlDomain}");
 
@@ -128,7 +101,7 @@ namespace WebChangeNotifier
 
                 _stateContainer.Set(task, text);
 
-                SendEmail($"Detected changes on {task.Url}", config.MailgunSettings);
+                _mailer.Send($"Detected changes on {task.Url}");
             }
         }
 
@@ -145,7 +118,7 @@ namespace WebChangeNotifier
                 {
                     try
                     {
-                        Process(task, config);
+                        Process(task);
                     }
                     catch (Exception ex)
                     {
@@ -163,7 +136,7 @@ namespace WebChangeNotifier
                 _errorsCount++;
                 if (_errorsCount > 2)
                 {
-                    SendEmail("Error\r\n\r\n" + String.Join("\r\n\r\n", errors), config.MailgunSettings);
+                    _mailer.Send("Error\r\n\r\n" + String.Join("\r\n\r\n", errors));
                     _errorsCount = 0;
                 }
 
@@ -179,6 +152,7 @@ namespace WebChangeNotifier
         {
             var config = ParseConfig(args.Any() ? args.First() : "config.json");
             _stateContainer = new WebsitesStateContainer(args.Length >= 2 ? args[1] : "state.json");
+            _mailer = new MailgunSender(config.MailgunSettings);
 
             while (true)
             {
