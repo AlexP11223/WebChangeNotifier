@@ -43,7 +43,7 @@ namespace WebChangeNotifier
 
         static void Log(string text)
         {
-            Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss tt")}] {text}");
+            Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] {text}");
         }
 
         static Config ParseConfig(string filePath)
