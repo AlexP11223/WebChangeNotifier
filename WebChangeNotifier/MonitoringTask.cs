@@ -1,6 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using OpenQA.Selenium;
 
 namespace WebChangeNotifier
 {
@@ -16,9 +17,25 @@ namespace WebChangeNotifier
         [JsonIgnore]
         public string UrlDomain => new Uri(Url).Host;
 
+        [JsonIgnore]
+        public string Id => Url + Selector;
+
         public override string ToString()
         {
             return $"{nameof(Url)}: {Url}, {nameof(Selector)}: {Selector}, {nameof(SelectorType)}: {SelectorType}";
+        }
+
+        public By SeleniumSelector()
+        {
+            switch (SelectorType)
+            {
+                case SelectorType.CSS:
+                    return By.CssSelector(Selector);
+                case SelectorType.XPath:
+                    return By.XPath(Selector);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

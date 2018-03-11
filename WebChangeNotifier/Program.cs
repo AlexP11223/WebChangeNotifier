@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using Newtonsoft.Json;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Remote;
 using RestSharp;
 using RestSharp.Authenticators;
 
@@ -32,6 +35,11 @@ namespace WebChangeNotifier
 
         // ReSharper disable once RedundantDefaultMemberInitializer
         static int _errorsCount = 0;
+
+        // ReSharper disable once RedundantDefaultMemberInitializer
+        static int _runCount = 0;
+
+        private static WebsitesStateContainer _stateContainer;
 
         static void Log(string text)
         {
@@ -66,15 +74,71 @@ namespace WebChangeNotifier
             Log(response.Content);
         }
 
+        static RemoteWebDriver _webDriver;
+        static RemoteWebDriver WebDriver
+        {
+            get
+            {
+                if (_webDriver == null)
+                {
+                    var service = ChromeDriverService.CreateDefaultService();
+                    service.HideCommandPromptWindow = true;
+
+                    _webDriver = new ChromeDriver(service);
+
+                    _webDriver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
+                    _webDriver.Manage().Window.Size = new Size(1600, 900);
+                }
+                return _webDriver;
+            }
+        }
+
+        static void DestroyWebDriver()
+        {
+            if (_webDriver != null)
+            {
+                try
+                {
+                    _webDriver.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Log($"Destroy failed {ex}");
+                }
+                _webDriver = null;
+            } 
+        }
+
         static void Process(MonitoringTask task, Config config)
         {
             Log($"Running {task.UrlDomain}");
 
+            var webDriver = WebDriver;
 
+            webDriver.Url = task.Url;
+
+            Thread.Sleep(3000);
+
+            var element = webDriver.FindElement(task.SeleniumSelector());
+            string text = element.Text.Trim();
+
+            if (!_stateContainer.Matches(task, text))
+            {
+                Log("Changed.");
+
+                _stateContainer.Set(task, text);
+
+                SendEmail($"Detected changes on {task.Url}", config.MailgunSettings);
+            }
         }
 
         static void Run(Config config)
         {
+            if (_runCount++ > 100)
+            {
+                DestroyWebDriver();
+            }
+            
             var results = config.Tasks
                 .OrderBy(t => Rand.Next())
                 .Select(task =>
@@ -102,6 +166,8 @@ namespace WebChangeNotifier
                     SendEmail("Error\r\n\r\n" + String.Join("\r\n\r\n", errors), config.MailgunSettings);
                     _errorsCount = 0;
                 }
+
+                DestroyWebDriver();
             }
             else
             {
@@ -112,6 +178,7 @@ namespace WebChangeNotifier
         static void Main(string[] args)
         {
             var config = ParseConfig(args.Any() ? args.First() : "config.json");
+            _stateContainer = new WebsitesStateContainer(args.Length >= 2 ? args[1] : "state.json");
 
             while (true)
             {
