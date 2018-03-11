@@ -24,9 +24,15 @@ namespace WebChangeNotifier
             if (!found)
             {
                 Set(task, data);
+                return true;
             }
 
-            return !found || d == data;
+            return d == data;
+        }
+
+        public string Get(MonitoringTask task)
+        {
+            return _state[task.Id];
         }
 
         public void Set(MonitoringTask task, string data)
