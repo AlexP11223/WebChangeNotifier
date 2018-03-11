@@ -151,7 +151,7 @@ namespace WebChangeNotifier
                 _stateContainer.Set(task, text);
 
                 _mailer.Send($"Detected changes on {task.Url}", 
-                    new []{new MailAttachment($"{DateTime.Now:HH-mm-ss}_{task.UrlDomain.Replace("www", "").Replace(".", "")}.diff", diff)});
+                    new []{new MailAttachment($"{DateTime.Now:dd-MM-yyyy_HH-mm-ss}_{task.UrlDomain.Replace("www", "").Replace(".", "")}.diff", diff)});
             }
         }
 
