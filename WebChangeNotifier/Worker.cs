@@ -9,6 +9,8 @@ using DiffPlex.DiffBuilder.Model;
 using Newtonsoft.Json;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Remote;
+using OpenQA.Selenium.Support.UI;
+using WebChangeNotifier.Helpers;
 using static WebChangeNotifier.Logger;
 
 namespace WebChangeNotifier
@@ -139,6 +141,10 @@ namespace WebChangeNotifier
             var webDriver = WebDriver;
 
             webDriver.Url = task.Url;
+
+            WaitHelper.WaitUntil(webDriver, TimeSpan.FromSeconds(60), 
+                ExpectedConditions.ElementExists(task.SeleniumSelector()), 
+                $"Element '{task.Selector}' not found");
 
             Thread.Sleep(3000);
 
