@@ -45,14 +45,17 @@ namespace WebChangeNotifier
 
         private RemoteWebDriver _webDriver;
 
+        private readonly string _profileDataDir;
+
         // ReSharper disable once RedundantDefaultMemberInitializer
         private int _errorsCount = 0;
 
         // ReSharper disable once RedundantDefaultMemberInitializer
         private int _runCount = 0;
 
-        public Worker(string configFilePath, string stateFilePath)
+        public Worker(string configFilePath, string stateFilePath, string profileDataDir)
         {
+            _profileDataDir = profileDataDir;
             _config = ParseConfig(configFilePath);
             _stateContainer = new WebsitesStateContainer(stateFilePath);
             _mailer = new MailgunSender(_config.MailgunSettings);
@@ -82,7 +85,10 @@ namespace WebChangeNotifier
                     var service = ChromeDriverService.CreateDefaultService();
                     service.HideCommandPromptWindow = true;
 
-                    _webDriver = new ChromeDriver(service);
+                    var options = new ChromeOptions();
+                    options.AddArguments($"--user-data-dir={_profileDataDir}");
+
+                    _webDriver = new ChromeDriver(service, options);
 
                     _webDriver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(60);
                     _webDriver.Manage().Window.Size = new Size(1600, 900);
