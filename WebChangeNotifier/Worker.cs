@@ -75,6 +75,8 @@ namespace WebChangeNotifier
             {
                 if (_webDriver == null)
                 {
+                    Log("Starting web driver");
+
                     var service = ChromeDriverService.CreateDefaultService();
                     service.HideCommandPromptWindow = true;
 
@@ -91,8 +93,11 @@ namespace WebChangeNotifier
         {
             if (_webDriver != null)
             {
+                Log("Destroying web driver");
+
                 try
                 {
+                    _webDriver.Close();
                     _webDriver.Dispose();
                 }
                 catch (Exception ex)
@@ -184,13 +189,15 @@ namespace WebChangeNotifier
             if (errors.Any())
             {
                 _errorsCount++;
+                if (_errorsCount > 1)
+                {
+                    DestroyWebDriver();
+                }
                 if (_errorsCount > 2)
                 {
                     _mailer.Send("Error\r\n\r\n" + String.Join("\r\n\r\n", errors));
                     _errorsCount = 0;
                 }
-
-                DestroyWebDriver();
             }
             else
             {
