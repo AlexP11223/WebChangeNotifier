@@ -63,6 +63,8 @@ namespace WebChangeNotifier
 
         public void Launch()
         {
+            Log("Started");
+
             while (true)
             {
                 Run(_config);

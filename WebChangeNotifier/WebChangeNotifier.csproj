@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MailgunSender.cs" />
     <Compile Include="MailgunSettings.cs" />
