@@ -3,9 +3,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using DiffPlex;
-using DiffPlex.DiffBuilder;
-using DiffPlex.DiffBuilder.Model;
 using Newtonsoft.Json;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Remote;
@@ -42,6 +39,8 @@ namespace WebChangeNotifier
         private readonly WebsitesStateContainer _stateContainer;
 
         private readonly MailgunSender _mailer;
+
+        private readonly Differ _differ = new Differ();
 
         private RemoteWebDriver _webDriver;
 
@@ -123,25 +122,6 @@ namespace WebChangeNotifier
             return JsonConvert.DeserializeObject<Config>(File.ReadAllText(filePath));
         }
 
-        private string Diff(string before, string after)
-        {
-            var diffBuilder = new InlineDiffBuilder(new Differ());
-            var diff = diffBuilder.BuildDiffModel(before, after);
-
-            return String.Join("\r\n", diff.Lines.Select(line =>
-            {
-                switch (line.Type)
-                {
-                    case ChangeType.Inserted:
-                        return "+ " + line.Text;
-                    case ChangeType.Deleted:
-                        return "- " + line.Text;
-                    default:
-                        return "  " + line.Text;
-                }
-            }));
-        }
-
         private void Process(MonitoringTask task)
         {
             Log($"Running {task.UrlDomain}");
@@ -165,12 +145,12 @@ namespace WebChangeNotifier
 
                 string before = _stateContainer.Get(task);
 
-                string diff = Diff(before, text);
+                var diff = _differ.Diff(before, text);
 
                 _stateContainer.Set(task, text);
 
-                _mailer.Send($"Detected changes on {task.Url}", 
-                    new []{new MailAttachment($"{DateTime.Now:dd-MM-yyyy_HH-mm-ss}_{task.UrlDomain.Replace("www", "").Replace(".", "")}.diff", diff)});
+                _mailer.Send($"Detected changes on {task.Url}\r\n{diff.InsertedCount} +, {diff.DeletedCount} -", 
+                    new []{new MailAttachment($"{DateTime.Now:dd-MM-yyyy_HH-mm-ss}_{task.UrlDomain.Replace("www", "").Replace(".", "")}.diff", diff.DiffText)});
             }
         }
 
