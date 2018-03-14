@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Newtonsoft.Json;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Remote;
 using OpenQA.Selenium.Support.UI;
@@ -133,6 +134,17 @@ namespace WebChangeNotifier
             WaitHelper.WaitUntil(webDriver, TimeSpan.FromSeconds(60), 
                 ExpectedConditions.ElementExists(task.SeleniumSelector()), 
                 $"Element '{task.Selector}' not found");
+
+            try
+            {
+                WaitHelper.WaitUntil(webDriver, TimeSpan.FromSeconds(20), 
+                    d => !String.IsNullOrWhiteSpace(d.FindElement(task.SeleniumSelector()).Text), 
+                    $"Element '{task.Selector}' is empty");
+            }
+            catch (WebDriverTimeoutException ex)
+            {
+                Log(ex.Message);
+            }
 
             Thread.Sleep(3000);
 
