@@ -48,7 +48,7 @@ namespace WebChangeNotifier
             request.Resource = "{domain}/messages";
             request.AddParameter("from", _emailSettings.From);
             request.AddParameter("to", _emailSettings.To);
-            request.AddParameter("subject", "WebChangeNotifier");
+            request.AddParameter("subject", _emailSettings.Subject);
             request.AddParameter("text", text);
             if (files != null)
             {
