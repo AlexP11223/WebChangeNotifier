@@ -27,6 +27,8 @@ namespace WebChangeNotifier
                 }
             }));
 
+        public string DiffTextWithStats => $"{InsertedCount} +, {DeletedCount} -\r\n{DiffText}";
+
         public int InsertedCount => _diffPaneModel.Lines.Count(line => line.Type == ChangeType.Inserted);
 
         public int DeletedCount => _diffPaneModel.Lines.Count(line => line.Type == ChangeType.Deleted);
