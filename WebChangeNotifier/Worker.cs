@@ -123,10 +123,8 @@ namespace WebChangeNotifier
             return JsonConvert.DeserializeObject<Config>(File.ReadAllText(filePath));
         }
 
-        private void Process(MonitoringTask task)
+        private string LoadData(MonitoringTask task)
         {
-            Log($"Running {task.UrlDomain}");
-
             var webDriver = WebDriver;
 
             webDriver.Url = task.Url;
@@ -135,21 +133,36 @@ namespace WebChangeNotifier
                 ExpectedConditions.ElementExists(task.SeleniumSelector()), 
                 $"Element '{task.Selector}' not found");
 
-            try
+            if (!task.AllowEmptyContent)
             {
-                WaitHelper.WaitUntil(webDriver, TimeSpan.FromSeconds(20), 
-                    d => !String.IsNullOrWhiteSpace(d.FindElement(task.SeleniumSelector()).Text), 
-                    $"Element '{task.Selector}' is empty");
-            }
-            catch (WebDriverTimeoutException ex)
-            {
-                Log(ex.Message);
+                try
+                {
+                    WaitHelper.WaitUntil(webDriver, TimeSpan.FromSeconds(20),
+                        d => !String.IsNullOrWhiteSpace(d.FindElement(task.SeleniumSelector()).Text),
+                        $"Element '{task.Selector}' is empty");
+                }
+                catch (WebDriverTimeoutException ex)
+                {
+                    Log(ex.Message);
+                }
             }
 
             Thread.Sleep(3000);
 
             var element = webDriver.FindElement(task.SeleniumSelector());
-            string text = element.Text.Trim();
+            return element.Text.Trim();
+        }
+
+        private void Process(MonitoringTask task)
+        {
+            Log($"Running {task.UrlDomain}");
+
+            string text = LoadData(task);
+
+            if (String.IsNullOrWhiteSpace(text) && !task.AllowEmptyContent)
+            {
+                text = LoadData(task);
+            }
 
             if (!_stateContainer.Matches(task, text))
             {

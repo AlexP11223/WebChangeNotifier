@@ -14,6 +14,8 @@ namespace WebChangeNotifier
         [JsonConverter(typeof(StringEnumConverter))]
         public SelectorType SelectorType { get; set; }
 
+        public bool AllowEmptyContent { get; set; } = false;
+
         [JsonIgnore]
         public string UrlDomain => new Uri(Url).Host;
 
@@ -22,7 +24,7 @@ namespace WebChangeNotifier
 
         public override string ToString()
         {
-            return $"{nameof(Url)}: {Url}, {nameof(Selector)}: {Selector}, {nameof(SelectorType)}: {SelectorType}";
+            return $"{nameof(Url)}: {Url}, {nameof(Selector)}: {Selector}, {nameof(SelectorType)}: {SelectorType}, {nameof(AllowEmptyContent)}: {AllowEmptyContent}";
         }
 
         public By SeleniumSelector()
