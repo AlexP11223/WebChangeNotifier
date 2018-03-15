@@ -13,7 +13,7 @@ using static WebChangeNotifier.Logger;
 
 namespace WebChangeNotifier
 {
-    class Worker
+    public class Worker : IDisposable
     {
         class ProcessErrorStatus
         {
@@ -73,7 +73,17 @@ namespace WebChangeNotifier
 
                 Thread.Sleep(_config.Delay * 1000);
             }
-            // ReSharper disable once FunctionNeverReturns 
+            // ReSharper disable once FunctionNeverReturns
+        }
+
+        public void Dispose()
+        {
+            DestroyWebDriver();
+        }
+
+        ~Worker()
+        {
+            Dispose();
         }
 
         private RemoteWebDriver WebDriver

@@ -72,6 +72,7 @@
   <ItemGroup>
     <Compile Include="Config.cs" />
     <Compile Include="Differ.cs" />
+    <Compile Include="Helpers\ConsoleExitDetector.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MailgunSender.cs" />
