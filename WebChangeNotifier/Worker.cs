@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -53,12 +54,16 @@ namespace WebChangeNotifier
         // ReSharper disable once RedundantDefaultMemberInitializer
         private int _runCount = 0;
 
+        private readonly Dictionary<string, int> _tasksConsecutiveEmptyCounts;
+
         public Worker(string configFilePath, string stateFilePath, string profileDataDir)
         {
             _profileDataDir = profileDataDir;
             _config = ParseConfig(configFilePath);
             _stateContainer = new WebsitesStateContainer(stateFilePath);
             _mailer = new MailgunSender(_config.MailgunSettings);
+
+            _tasksConsecutiveEmptyCounts = _config.Tasks.ToDictionary(t => t.Id, t => 0);
         }
 
         public void Launch()
@@ -169,9 +174,21 @@ namespace WebChangeNotifier
 
             string text = LoadData(task);
 
-            if (String.IsNullOrWhiteSpace(text) && !task.AllowEmptyContent)
+            if (!task.AllowEmptyContent)
             {
-                text = LoadData(task);
+                _tasksConsecutiveEmptyCounts[task.Id] = String.IsNullOrWhiteSpace(text) ? _tasksConsecutiveEmptyCounts[task.Id] + 1 : 0;
+
+                if (String.IsNullOrWhiteSpace(text) &&
+                    !_stateContainer.Matches(task, text)) // not already recorded this as change (optimization to avoid unnecessary delays)
+                {
+                    text = LoadData(task);
+
+                    // still empty and need to wait until the next check before reporting
+                    if (String.IsNullOrWhiteSpace(text) && task.SkipUntilNextCheckIfEmpty && _tasksConsecutiveEmptyCounts[task.Id] < 2)
+                    {
+                        return;
+                    }
+                }
             }
 
             if (!_stateContainer.Matches(task, text))
