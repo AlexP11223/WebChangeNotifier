@@ -48,6 +48,8 @@ namespace WebChangeNotifier
 
         private readonly string _profileDataDir;
 
+        private readonly string _errorDataDir;
+
         // ReSharper disable once RedundantDefaultMemberInitializer
         private int _errorsCount = 0;
 
@@ -56,9 +58,10 @@ namespace WebChangeNotifier
 
         private readonly Dictionary<string, int> _tasksConsecutiveEmptyCounts;
 
-        public Worker(string configFilePath, string stateFilePath, string profileDataDir)
+        public Worker(string configFilePath, string stateFilePath, string profileDataDir, string errorDataDir)
         {
             _profileDataDir = profileDataDir;
+            _errorDataDir = errorDataDir;
             _config = ParseConfig(configFilePath);
             _stateContainer = new WebsitesStateContainer(stateFilePath);
             _mailer = new MailgunSender(_config.MailgunSettings);
@@ -181,12 +184,20 @@ namespace WebChangeNotifier
                 if (String.IsNullOrWhiteSpace(text) &&
                     !_stateContainer.Matches(task, text)) // not already recorded this as change (optimization to avoid unnecessary delays)
                 {
-                    text = LoadData(task);
+                    SaveBrowserError("empty");
 
-                    // still empty and need to wait until the next check before reporting
-                    if (String.IsNullOrWhiteSpace(text) && task.SkipUntilNextCheckIfEmpty && _tasksConsecutiveEmptyCounts[task.Id] < 2)
+                    text = LoadData(task);
+                    
+                    // still empty
+                    if (String.IsNullOrWhiteSpace(text))
                     {
-                        return;
+                        SaveBrowserError("empty2");
+
+                        // need to wait until the next check before reporting
+                        if (task.SkipUntilNextCheckIfEmpty && _tasksConsecutiveEmptyCounts[task.Id] < 2)
+                        {
+                            return;
+                        }
                     }
                 }
             }
@@ -225,6 +236,8 @@ namespace WebChangeNotifier
                     {
                         Log(ex.ToString());
 
+                        SaveBrowserError("error");
+
                         return ProcessErrorStatus.Fail(ex, task);
                     }
 
@@ -248,6 +261,43 @@ namespace WebChangeNotifier
             else
             {
                 _errorsCount = 0;
+            }
+        }
+
+        private void SaveBrowserError(string name)
+        {
+            try
+            {
+                FileHelper.CreateDirectoryIfNotExist(_errorDataDir);
+
+                string fileBaseName = $"{DateTime.Now:dd-MM-yyyy_HH-mm-ss-ms}_{name}";
+
+                SaveScreenshot($"{_errorDataDir}{fileBaseName}.png");
+
+                string jsLog = String.Join("\r\n", WebDriver.Manage().Logs.GetLog("browser")
+                        .Select(logItem => $"[{logItem.Timestamp}] *{logItem.Level}* {logItem.Message}"));
+
+                string html = WebDriver.FindElementByTagName("html").GetAttribute("outerHTML");
+
+                File.WriteAllText($"{_errorDataDir}{fileBaseName}.html", $"JS log: <br/><pre>{jsLog}<pre>\r\n{html}");
+            }
+            catch (Exception ex)
+            {
+                Log($"Failed to save browser error '{name}': {ex.Message}");
+            }
+        }
+
+        private void SaveScreenshot(string filePath, ScreenshotImageFormat format = ScreenshotImageFormat.Png)
+        {
+            try
+            {
+                FileHelper.CreateDirectoryIfNotExist(filePath);
+
+                WebDriver.GetScreenshot().SaveAsFile(filePath, format);
+            }
+            catch (Exception ex)
+            {
+                Log($"Failed to save screenshot {filePath}: {ex.Message}");
             }
         }
     }
