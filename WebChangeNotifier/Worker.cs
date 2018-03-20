@@ -219,7 +219,7 @@ namespace WebChangeNotifier
 
         private void Run(Config config)
         {
-            if (_runCount++ > 100)
+            if (config.BrowserRestartPeriod > 0 && _runCount++ % config.BrowserRestartPeriod == 0)
             {
                 DestroyWebDriver();
             }
