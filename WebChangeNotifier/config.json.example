@@ -2,20 +2,40 @@
   "Tasks": [
     {
       "Url": "http://example.com",
-      "Selector": "div.data",
+      "Selector": "#dataId",
       "SelectorType": "CSS"
     },
     {
-      "Url": "http://example2.com",
-      "Selector": "//span[contains(text(), 'Data:')]",
+      "Url": "http://2.example.com",
+      "Selector": "//div/span[contains(text(), 'Data:')]",
       "SelectorType": "XPath"
+    },
+    {
+      "Url": "http://3.example.com",
+      "Selector": "#featured-items",
+      "SelectorType": "CSS",
+      "AllowEmptyContent": true
+    },
+    {
+      "Url": "http://example-with-unreliable-ajax.com",
+      "Selector": "#ajax-container",
+      "SelectorType": "CSS",
+      "SkipUntilNextCheckIfEmpty": true
+    },
+    {
+      "Url": "http://example-that-bans-for-too-frequent-requests.com",
+      "Selector": "#lotsOfData",
+      "SelectorType": "CSS",
+      "MinDelay": 900
     }
   ],
   "MailgunSettings": {
     "ApiKey": "111111111111",
     "Domain": "sandbox11111111",
     "From": "Mailgun Sandbox <postmaster@sandbox11111111111>",
-    "To": "Alex P <alex.pantec@gmail.com>"
+    "To": "Alex P <alex.pantec@gmail.com>",
+    "Subject": "WebChangeNotifier"
   },
-  "Delay": 300
+  "Delay": 300,
+  "BrowserRestartPeriod": 100
 }
