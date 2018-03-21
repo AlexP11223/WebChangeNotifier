@@ -6,6 +6,8 @@ The project was created because I wanted to monitor changes on several websites 
 
 It periodically opens all URLs in the list (in random order) and retrieves content (as text) using the specified selector. If the content changed since the last time, then it sends email notification with number of inserted/deleted lines and DIFF text file. Also it sends notifications about errors (if repeated more than once in a row) such as when the website is down or the content is not found.
 
+Binary (\*.exe) can be downloaded in [Releases](https://github.com/AlexP11223/WebChangeNotifier/releases). Targets .NET Framework 4.5.2 (probably can be built with earlier versions, but you may need to reinstall some NuGet packages). 
+
 ## Requerements
 
 Uses Chrome via Selenium, requires **chromedriver** from https://sites.google.com/a/chromium.org/chromedriver/downloads in the app dir or in PATH (it is included in the release and added via [this NuGet package](https://github.com/AlexP11223/nupkg-selenium-webdrivers) in the project, but it may become outdated).
