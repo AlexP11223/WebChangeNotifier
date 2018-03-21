@@ -173,6 +173,12 @@ namespace WebChangeNotifier
 
         private void Process(MonitoringTask task)
         {
+            if ((DateTime.Now - _stateContainer.GetOrDefault(task).LastUpdateTime) < TimeSpan.FromSeconds(task.MinDelay))
+            {
+                Log($"Skipping {task.UrlDomain} (min delay)");
+                return;
+            }
+
             Log($"Running {task.UrlDomain}");
 
             string text = LoadData(task);
@@ -206,7 +212,7 @@ namespace WebChangeNotifier
             {
                 Log("Changed.");
 
-                string before = _stateContainer.Get(task);
+                string before = _stateContainer.Get(task).Data;
 
                 var diff = _differ.Diff(before, text);
 
@@ -214,6 +220,10 @@ namespace WebChangeNotifier
 
                 _mailer.Send($"Detected changes on {task.Url}\r\n{diff.InsertedCount} +, {diff.DeletedCount} -", 
                     new []{new MailAttachment($"{DateTime.Now:dd-MM-yyyy_HH-mm-ss}_{task.UrlDomain.Replace("www", "").Replace(".", "")}.diff", diff.DiffTextWithStats)});
+            }
+            else
+            {
+                _stateContainer.UpdateTime(task);
             }
         }
 

@@ -14,6 +14,8 @@ namespace WebChangeNotifier
         [JsonConverter(typeof(StringEnumConverter))]
         public SelectorType SelectorType { get; set; }
 
+        public int MinDelay { get; set; } = 0;
+
         public bool AllowEmptyContent { get; set; } = false;
         public bool SkipUntilNextCheckIfEmpty { get; set; } = false;
 
@@ -25,7 +27,7 @@ namespace WebChangeNotifier
 
         public override string ToString()
         {
-            return $"{nameof(Url)}: {Url}, {nameof(Selector)}: {Selector}, {nameof(SelectorType)}: {SelectorType}, {nameof(AllowEmptyContent)}: {AllowEmptyContent}, {nameof(SkipUntilNextCheckIfEmpty)}: {SkipUntilNextCheckIfEmpty}";
+            return $"{nameof(Url)}: {Url}, {nameof(Selector)}: {Selector}, {nameof(SelectorType)}: {SelectorType}, {nameof(MinDelay)}: {MinDelay}, {nameof(AllowEmptyContent)}: {AllowEmptyContent}, {nameof(SkipUntilNextCheckIfEmpty)}: {SkipUntilNextCheckIfEmpty}";
         }
 
         public By SeleniumSelector()
