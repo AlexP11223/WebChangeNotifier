@@ -7,10 +7,11 @@ set "binDir=%projectDir%bin\Release\"
 rmdir /s /q %outDir%
 
 robocopy %bindir% %outAppDir% * /xf *.vshost.exe
-robocopy %projectDir% %outAppDir% *.example
+robocopy %projectDir% %outAppDir% *.example.*
+robocopy %cd% %outAppDir% *.md
 
 rm %outAppDir%config.json
-mv %outAppDir%config.json.example %outAppDir%config.json
+mv %outAppDir%config.example.json %outAppDir%config.json
 
 cd  %outdir%\
 "C:\Program Files\WinRAR\WinRAR.exe" a -r "%project%.zip"

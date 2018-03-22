@@ -16,7 +16,7 @@ For building from source code requires Visual Studio 2017.
 
 # Configuration
 
-See `config.json.example` [in the source code](WebChangeNotifier/config.json.example) or `config.json` in the release. Basically it just needs URL and CSS or XPath selector for each task, and Mailgun settings. 
+See `config.example.json` [in the source code](https://github.com/AlexP11223/WebChangeNotifier/blob/master/WebChangeNotifier/config.example.json) or `config.json` in the release. Basically it just needs URL and CSS or XPath selector for each task, and Mailgun settings. 
 
 Some notable properties:
 
