@@ -40,6 +40,10 @@ An alternative could be to use headless PhantomJS but I had some issues with it 
 
 Feel free to modify it :) Changing web driver should not be difficult, the only Chrome-specific thing here is `--user-data-dir` but I added it only because one website started to show captcha on first visit with fresh profile.
 
+## State
+
+State of the tasks (content retrieved in the last successful check and date/time for `MinDelay`) is saved to `state.json` by default, so you can restart the app/machine and continue with the last state. If you want to reset the state (for example if you have not used the app for a long time and don't care about changes since the last run), you can just delete the file. State for each task is identified by **URL + selector**, so if you changed any of these for some task, the state for this task will reset.
+
 # Troubleshooting
 
 It outputs log to the console window and to text files in `logs` directory in the app directory. Also it saves web page screenshot and HTML to `logs/errors` when encountered any error.
