@@ -10,6 +10,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Remote;
 using OpenQA.Selenium.Support.UI;
 using WebChangeNotifier.Helpers;
+using static SeleniumExtras.WaitHelpers.ExpectedConditions;
 using static WebChangeNotifier.Logger;
 
 namespace WebChangeNotifier
@@ -148,7 +149,7 @@ namespace WebChangeNotifier
             webDriver.Url = task.Url;
 
             WaitHelper.WaitUntil(webDriver, TimeSpan.FromSeconds(60), 
-                ExpectedConditions.ElementExists(task.SeleniumSelector()), 
+                ElementExists(task.SeleniumSelector()), 
                 $"Element '{task.Selector}' not found");
 
             if (!task.AllowEmptyContent)
