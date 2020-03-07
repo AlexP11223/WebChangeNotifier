@@ -1,6 +1,6 @@
 # WebChangeNotifier
 
-C#/.NET console Windows app for website content changes detection. Sends notifications to email (via [Mailgun HTTP API](https://www.mailgun.com), it is free for up to 10 000 emails/month, credit card or domain are not needed).
+C#/.NET console Windows app for website content changes detection. Sends notifications to email via [Mailgun HTTP API](https://www.mailgun.com).
 
 The project was created because I wanted to monitor changes on several websites (product lists in local stores) and all services/apps I found did not have the features I needed or allowed only 1 check per day in free version.
 
